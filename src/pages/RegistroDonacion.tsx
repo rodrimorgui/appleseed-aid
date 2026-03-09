@@ -82,6 +82,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function RegistroDonacion() {
+  const { addDonacion } = usePersonas();
   const navigate = useNavigate();
   const [montoNumerico, setMontoNumerico] = useState<number>(0);
   const [showLegalModal, setShowLegalModal] = useState(false);
