@@ -70,6 +70,7 @@ const formSchema = z.object({
   tipoPersona: z.enum(["fisica", "moral"], {
     required_error: "Selecciona el tipo de persona",
   }),
+  rfc: z.string().optional(),
   monto: z.string().refine((val) => {
     const num = parseFloat(val.replace(/,/g, ""));
     return !isNaN(num) && num > 0;
