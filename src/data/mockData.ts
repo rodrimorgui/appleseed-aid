@@ -167,23 +167,3 @@ export const oscData: OSCData = {
   telefono: "55 1111 2222",
   umbralAlerta: 64890,
 };
-  nombre: string;
-  rfc: string;
-  cluni: string;
-  domicilio: string;
-  representanteLegal: string;
-  email: string;
-  telefono: string;
-  umbralAlerta: number;
-}
-
-export const oscData: OSCData = {
-  nombre: "Appleseed México A.C.",
-  rfc: "APM150301XYZ",
-  cluni: "APM-2015-001234",
-  domicilio: "Av. Reforma 505, Col. Cuauhtémoc, CDMX, CP 06500",
-  representanteLegal: "Lic. Alejandro Ruiz Mendoza",
-  email: "contacto@appleseedmexico.org",
-  telefono: "55 1111 2222",
-  umbralAlerta: 64890,
-};
