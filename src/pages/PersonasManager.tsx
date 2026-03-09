@@ -25,7 +25,7 @@ export default function PersonasManager() {
   const { personas } = usePersonas();
   const [search, setSearch] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("todos");
-  const [mostrarSoloPendientes, setMostrarSoloPendientes] = useState(true);
+  const [mostrarSoloPendientes, setMostrarSoloPendientes] = useState(false);
 
   const filtered = useMemo(() => {
     return personas.filter((p) => {
@@ -40,7 +40,7 @@ export default function PersonasManager() {
         p.notificacionPendiente;
       return matchSearch && matchTipo && hasPending;
     });
-  }, [search, tipoFiltro, mostrarSoloPendientes]);
+  }, [search, tipoFiltro, mostrarSoloPendientes, personas]);
 
   return (
     <div className="space-y-6">
@@ -93,6 +93,7 @@ export default function PersonasManager() {
               <TableHead>Nombre</TableHead>
               <TableHead className="hidden sm:table-cell">Tipo</TableHead>
               <TableHead className="hidden md:table-cell">RFC</TableHead>
+              <TableHead>Total Donado</TableHead>
               <TableHead>Documentación</TableHead>
               <TableHead>Cumplimiento</TableHead>
               <TableHead>Notificación</TableHead>
@@ -102,7 +103,7 @@ export default function PersonasManager() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                   No se encontraron personas con los filtros seleccionados.
                 </TableCell>
               </TableRow>
@@ -129,6 +130,9 @@ export default function PersonasManager() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell font-mono text-sm text-muted-foreground">
                       {p.rfc}
+                    </TableCell>
+                    <TableCell className="font-medium text-sm">
+                      ${totalDonado.toLocaleString("es-MX")}
                     </TableCell>
                     <TableCell>
                       {todosCompletos ? (

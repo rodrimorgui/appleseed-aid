@@ -70,6 +70,7 @@ const formSchema = z.object({
   tipoPersona: z.enum(["fisica", "moral"], {
     required_error: "Selecciona el tipo de persona",
   }),
+  rfc: z.string().optional(),
   monto: z.string().refine((val) => {
     const num = parseFloat(val.replace(/,/g, ""));
     return !isNaN(num) && num > 0;
@@ -94,6 +95,7 @@ export default function RegistroDonacion() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombreDonante: "",
+      rfc: "",
       monto: "",
     },
   });
@@ -118,6 +120,7 @@ export default function RegistroDonacion() {
       tipoPersona: data.tipoPersona,
       monto,
       fecha: format(data.fechaDonacion, "yyyy-MM-dd"),
+      rfc: data.rfc || undefined,
     });
 
     // Also keep legacy store in sync
@@ -203,6 +206,24 @@ export default function RegistroDonacion() {
                         <Input
                           placeholder="Ej: Juan Pérez García o Fundación Ejemplo S.A. de C.V."
                           {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="rfc"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>RFC (opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ej: GALM850315ABC"
+                          className="font-mono uppercase"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                         />
                       </FormControl>
                       <FormMessage />
