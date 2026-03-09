@@ -25,7 +25,7 @@ export default function PersonasManager() {
   const { personas } = usePersonas();
   const [search, setSearch] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("todos");
-  const [mostrarSoloPendientes, setMostrarSoloPendientes] = useState(true);
+  const [mostrarSoloPendientes, setMostrarSoloPendientes] = useState(false);
 
   const filtered = useMemo(() => {
     return personas.filter((p) => {
