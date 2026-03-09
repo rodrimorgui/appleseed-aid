@@ -7,10 +7,12 @@ import {
   Menu,
   X,
   ShieldCheck,
+  HandHeart,
 } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/donaciones", label: "Registro de Donación", icon: HandHeart },
   { to: "/personas", label: "Gestor de Personas", icon: Users },
   { to: "/organizacion", label: "Perfil OSC", icon: Building2 },
 ];

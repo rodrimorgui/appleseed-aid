@@ -22,6 +22,7 @@ const App = () => (
         <AppLayout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/donaciones" element={<RegistroDonacion />} />
             <Route path="/personas" element={<PersonasManager />} />
             <Route path="/personas/:id" element={<PersonaProfile />} />
             <Route path="/organizacion" element={<OrganizacionProfile />} />
