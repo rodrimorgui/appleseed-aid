@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { agregarDonacionRegistrada } from "@/data/mockData";
+import { usePersonas } from "@/context/PersonasContext";
 import { toast } from "sonner";
 
 const UMBRAL_IDENTIFICACION = 188282;
@@ -81,6 +82,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function RegistroDonacion() {
+  const { addDonacion } = usePersonas();
   const navigate = useNavigate();
   const [montoNumerico, setMontoNumerico] = useState<number>(0);
   const [showLegalModal, setShowLegalModal] = useState(false);
@@ -109,6 +111,16 @@ export default function RegistroDonacion() {
 
   const saveDonation = (data: FormValues, withConsent: boolean) => {
     const monto = parseFloat(data.monto.replace(/,/g, ""));
+
+    // Add to shared personas store (creates or updates persona)
+    addDonacion({
+      nombreDonante: data.nombreDonante,
+      tipoPersona: data.tipoPersona,
+      monto,
+      fecha: format(data.fechaDonacion, "yyyy-MM-dd"),
+    });
+
+    // Also keep legacy store in sync
     agregarDonacionRegistrada({
       id: `dr-${Date.now()}`,
       nombreDonante: data.nombreDonante,
@@ -129,7 +141,7 @@ export default function RegistroDonacion() {
 
     form.reset();
     setMontoNumerico(0);
-    navigate("/");
+    navigate("/personas");
   };
 
   const onSubmit = (data: FormValues) => {

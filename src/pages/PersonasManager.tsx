@@ -18,9 +18,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import StatusBadge from "@/components/StatusBadge";
-import { personas } from "@/data/mockData";
+import { usePersonas } from "@/context/PersonasContext";
+import { UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
 
 export default function PersonasManager() {
+  const { personas } = usePersonas();
   const [search, setSearch] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("todos");
   const [mostrarSoloPendientes, setMostrarSoloPendientes] = useState(true);
@@ -92,6 +94,7 @@ export default function PersonasManager() {
               <TableHead className="hidden sm:table-cell">Tipo</TableHead>
               <TableHead className="hidden md:table-cell">RFC</TableHead>
               <TableHead>Documentación</TableHead>
+              <TableHead>Cumplimiento</TableHead>
               <TableHead>Notificación</TableHead>
               <TableHead className="w-10" />
             </TableRow>
@@ -99,7 +102,7 @@ export default function PersonasManager() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   No se encontraron personas con los filtros seleccionados.
                 </TableCell>
               </TableRow>
@@ -110,6 +113,9 @@ export default function PersonasManager() {
                 ).length;
                 const docsTotal = p.documentos.length;
                 const todosCompletos = docsPendientes === 0;
+                const totalDonado = p.donaciones.reduce((s, d) => s + d.monto, 0);
+                const superaAviso = totalDonado >= UMBRAL_AVISO;
+                const superaIdentificacion = totalDonado >= UMBRAL_IDENTIFICACION;
 
                 return (
                   <TableRow key={p.id} className="group">
@@ -133,6 +139,15 @@ export default function PersonasManager() {
                         <StatusBadge status="urgent">
                           {docsPendientes} pendientes
                         </StatusBadge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {superaAviso ? (
+                        <StatusBadge status="urgent">Aviso SAT</StatusBadge>
+                      ) : superaIdentificacion ? (
+                        <StatusBadge status="warning">Identificación</StatusBadge>
+                      ) : (
+                        <StatusBadge status="complete">Normal</StatusBadge>
                       )}
                     </TableCell>
                     <TableCell>
