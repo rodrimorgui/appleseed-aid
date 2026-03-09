@@ -111,6 +111,16 @@ export default function RegistroDonacion() {
 
   const saveDonation = (data: FormValues, withConsent: boolean) => {
     const monto = parseFloat(data.monto.replace(/,/g, ""));
+
+    // Add to shared personas store (creates or updates persona)
+    addDonacion({
+      nombreDonante: data.nombreDonante,
+      tipoPersona: data.tipoPersona,
+      monto,
+      fecha: format(data.fechaDonacion, "yyyy-MM-dd"),
+    });
+
+    // Also keep legacy store in sync
     agregarDonacionRegistrada({
       id: `dr-${Date.now()}`,
       nombreDonante: data.nombreDonante,
@@ -131,7 +141,7 @@ export default function RegistroDonacion() {
 
     form.reset();
     setMontoNumerico(0);
-    navigate("/");
+    navigate("/personas");
   };
 
   const onSubmit = (data: FormValues) => {
