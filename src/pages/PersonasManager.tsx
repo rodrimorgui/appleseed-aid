@@ -142,6 +142,15 @@ export default function PersonasManager() {
                       )}
                     </TableCell>
                     <TableCell>
+                      {superaAviso ? (
+                        <StatusBadge status="urgent">Aviso SAT</StatusBadge>
+                      ) : superaIdentificacion ? (
+                        <StatusBadge status="warning">Identificación</StatusBadge>
+                      ) : (
+                        <StatusBadge status="complete">Normal</StatusBadge>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       {p.notificacionPendiente ? (
                         <CircleAlert className="h-5 w-5 text-urgent animate-pulse-urgent" />
                       ) : (
