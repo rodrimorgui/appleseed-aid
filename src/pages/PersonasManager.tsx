@@ -18,7 +18,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import StatusBadge from "@/components/StatusBadge";
-import { personas } from "@/data/mockData";
+import { usePersonas } from "@/context/PersonasContext";
+import { UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
 
 export default function PersonasManager() {
   const [search, setSearch] = useState("");
