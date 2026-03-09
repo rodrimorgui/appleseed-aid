@@ -94,6 +94,7 @@ export default function PersonasManager() {
               <TableHead className="hidden sm:table-cell">Tipo</TableHead>
               <TableHead className="hidden md:table-cell">RFC</TableHead>
               <TableHead>Documentación</TableHead>
+              <TableHead>Cumplimiento</TableHead>
               <TableHead>Notificación</TableHead>
               <TableHead className="w-10" />
             </TableRow>
