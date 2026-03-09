@@ -325,7 +325,7 @@ export default function Dashboard() {
               <div className="rounded-lg bg-primary/10 p-2">
                 <Users className="h-5 w-5 text-primary" />
               </div>
-              Estructura Personas Morales
+              Expediente Personas Morales
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               Donantes institucionales y umbral de Beneficiario Controlador (25%)
