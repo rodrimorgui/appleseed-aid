@@ -23,6 +23,13 @@ export default function Dashboard() {
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
   const daysUntilDeadline = Math.max(0, Math.ceil((endOfMonth.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
 
+  // Countdown to day 17 of current or next month
+  const currentMonth17 = new Date(today.getFullYear(), today.getMonth(), 17);
+  const target17 = today <= currentMonth17
+    ? currentMonth17
+    : new Date(today.getFullYear(), today.getMonth() + 1, 17);
+  const daysUntil17 = Math.max(0, Math.ceil((target17.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+
   const montoEnRiesgo = personas
     .flatMap((p) => p.donaciones)
     .filter((d) => !d.notificada && d.monto > oscData.umbralAlerta)
@@ -34,7 +41,7 @@ export default function Dashboard() {
   ).length;
   const porcentajeCumplimiento = Math.round((donantesCompletos / totalDonantes) * 100);
 
-  // SAT Notifications: Only donors with donations > $376,000 (UMBRAL_AVISO) - Formal SAT notice required
+  // SAT Notifications: Only donors with donations > $376,000 (UMBRAL_AVISO)
   const notificacionesSAT = personas
     .map((p) => {
       const donacionesPendientes = p.donaciones.filter((d) => !d.notificada);
@@ -48,26 +55,39 @@ export default function Dashboard() {
     })
     .filter((p) => p.montoTotal > UMBRAL_AVISO || p.maxDonacion > UMBRAL_AVISO);
 
-  // Pending documentation: Donors with donations > $188,000 (UMBRAL_IDENTIFICACION) and missing documents
-  const documentacionPendiente = personas
+  // Personas Físicas: > $188,282 with document status tracking
+  const UMBRAL_PF = 188282;
+  const personasFisicas = personas
     .filter((p) => {
-      const tieneDocsPendientes = p.documentos.some((d) => d.estado === "pendiente");
-      const donacionesPendientes = p.donaciones.filter((d) => !d.notificada);
-      const montoTotal = donacionesPendientes.reduce((s, d) => s + d.monto, 0);
+      if (p.tipoDonante !== "Persona Física") return false;
+      const montoTotal = p.donaciones.reduce((s, d) => s + d.monto, 0);
       const maxDonacion = Math.max(...p.donaciones.map(d => d.monto), 0);
-      const requiereIdentificacion = montoTotal > UMBRAL_IDENTIFICACION || maxDonacion > UMBRAL_IDENTIFICACION;
-      return tieneDocsPendientes && requiereIdentificacion;
+      return montoTotal > UMBRAL_PF || maxDonacion > UMBRAL_PF;
     })
     .map((p) => {
-      const total = p.documentos.length;
-      const completados = p.documentos.filter((d) => d.estado === "cargado").length;
-      const progreso = Math.round((completados / total) * 100);
       const montoTotal = p.donaciones.reduce((s, d) => s + d.monto, 0);
-      return { ...p, total, completados, progreso, montoTotal };
+      // Track specific required docs
+      const ine = p.documentos.find(d => d.tipo === "INE");
+      const csf = p.documentos.find(d => d.tipo === "Constancia de Situación Fiscal");
+      const domicilio = p.documentos.find(d => d.tipo === "Comprobante de Domicilio");
+      return {
+        ...p,
+        montoTotal,
+        ineOk: ine?.estado === "cargado",
+        csfOk: csf?.estado === "cargado",
+        domicilioOk: domicilio?.estado === "cargado",
+      };
     });
 
-  // Donations from registry with alerts
-  const donacionesConAlerta = donacionesRegistradas.filter((d) => d.alertaCumplimiento);
+  // Personas Morales: institutional donors with beneficiary controller alerts
+  const personasMorales = personas
+    .filter((p) => p.tipoDonante === "Persona Moral")
+    .map((p) => {
+      const montoTotal = p.donaciones.reduce((s, d) => s + d.monto, 0);
+      const docsCompletos = p.documentos.filter(d => d.estado === "cargado").length;
+      const docsTotal = p.documentos.length;
+      return { ...p, montoTotal, docsCompletos, docsTotal };
+    });
 
   // Simulated controlling beneficiary alerts
   const alertasBeneficiarios = [
@@ -87,8 +107,19 @@ export default function Dashboard() {
     },
   ];
 
-  // Simulated documents ready for Artu.ai
   const documentosParaProcesar = 5;
+
+  // Helper for doc icon
+  const DocIcon = ({ ok, label }: { ok: boolean; label: string }) => (
+    <div className="flex flex-col items-center gap-1">
+      <div className={`rounded-lg p-2 transition-colors ${ok ? "bg-complete/15" : "bg-muted"}`}>
+        <FileCheck className={`h-4 w-4 ${ok ? "text-complete" : "text-muted-foreground/40"}`} />
+      </div>
+      <span className={`text-[10px] font-medium ${ok ? "text-complete" : "text-muted-foreground/50"}`}>
+        {label}
+      </span>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -100,9 +131,8 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* KPI Row - Bento Style */}
+      {/* KPI Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Days until deadline */}
         <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
@@ -123,7 +153,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Amount at risk */}
         <Card className="relative overflow-hidden border-urgent/30 bg-gradient-to-br from-urgent/5 to-urgent/10 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
@@ -145,7 +174,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Compliance percentage */}
         <Card className="relative overflow-hidden border-complete/30 bg-gradient-to-br from-complete/5 to-complete/10 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
@@ -166,7 +194,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Artu.ai Navigation Shortcut */}
+      {/* Artu.ai Shortcut */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 shadow-sm">
         <CardContent className="flex items-center justify-between p-4">
           <div className="flex items-center gap-4">
@@ -187,25 +215,35 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Main Grid - Bento Box Layout */}
+      {/* === BENTO GRID: 3 Columns === */}
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Column 1: SAT Notifications (Urgent - Red) */}
+
+        {/* CARD 1: Notificaciones SAT (Rojo) */}
         <Card className="border-urgent/20 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="rounded-lg bg-urgent/10 p-2">
-                <Bell className="h-5 w-5 text-urgent" />
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="rounded-lg bg-urgent/10 p-2">
+                  <Bell className="h-5 w-5 text-urgent" />
+                </div>
+                Notificaciones SAT
+              </CardTitle>
+              {/* Countdown to day 17 */}
+              <div className="flex items-center gap-1.5 rounded-full border border-urgent/20 bg-urgent/5 px-3 py-1">
+                <Clock className="h-3.5 w-3.5 text-urgent" />
+                <span className="text-xs font-bold text-urgent">{daysUntil17}d</span>
+                <span className="text-[10px] text-urgent/70">para día 17</span>
               </div>
-              Notificaciones SAT
-            </CardTitle>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Donantes con monto &gt; ${UMBRAL_AVISO.toLocaleString("es-MX")} MXN — Requieren aviso formal
+            </p>
           </CardHeader>
           <CardContent className="space-y-3">
             {notificacionesSAT.length === 0 ? (
               <div className="rounded-lg bg-muted/50 p-4 text-center">
                 <FileCheck className="mx-auto h-8 w-8 text-complete" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Sin notificaciones pendientes
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">Sin notificaciones pendientes</p>
               </div>
             ) : (
               notificacionesSAT.map((p) => (
@@ -216,9 +254,7 @@ export default function Dashboard() {
                 >
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                      <p className="font-medium">
-                        {p.nombre} {p.apellidos}
-                      </p>
+                      <p className="font-medium">{p.nombre} {p.apellidos}</p>
                       <StatusBadge status="urgent">
                         ${p.montoTotal.toLocaleString("es-MX")} MXN
                       </StatusBadge>
@@ -229,7 +265,7 @@ export default function Dashboard() {
                     <div className="mt-3 flex items-center gap-2 text-xs">
                       <Clock className="h-3.5 w-3.5 text-urgent" />
                       <span className="font-medium text-urgent">
-                        Fecha límite: {p.fechaLimite.toLocaleDateString("es-MX")}
+                        Límite: {p.fechaLimite.toLocaleDateString("es-MX")}
                       </span>
                     </div>
                   )}
@@ -239,116 +275,117 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Column 2: Pending Documentation (Warning - Amber) */}
+        {/* CARD 2: Expedientes Personas Físicas (Ámbar) */}
         <Card className="border-warning/20 shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <div className="rounded-lg bg-warning/10 p-2">
                 <FileWarning className="h-5 w-5 text-warning" />
               </div>
-              Documentación Pendiente
+              Expedientes Personas Físicas
             </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Donantes con monto &gt; ${UMBRAL_PF.toLocaleString("es-MX")} MXN — Requieren identificación completa
+            </p>
           </CardHeader>
           <CardContent className="space-y-3">
-            {documentacionPendiente.length === 0 && donacionesConAlerta.length === 0 ? (
+            {personasFisicas.length === 0 ? (
               <div className="rounded-lg bg-muted/50 p-4 text-center">
                 <FileCheck className="mx-auto h-8 w-8 text-complete" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Todos los expedientes están completos
-                </p>
+                <p className="mt-2 text-sm text-muted-foreground">Sin expedientes pendientes</p>
               </div>
             ) : (
-              <>
-                {documentacionPendiente.map((p) => (
-                  <Link
-                    key={p.id}
-                    to={`/personas/${p.id}`}
-                    className="block rounded-xl border border-warning/20 bg-gradient-to-r from-warning/5 to-transparent p-4 transition-all hover:border-warning/40 hover:shadow-md"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium">
-                        {p.nombre} {p.apellidos}
+              personasFisicas.map((p) => (
+                <Link
+                  key={p.id}
+                  to={`/personas/${p.id}`}
+                  className="block rounded-xl border border-warning/20 bg-gradient-to-r from-warning/5 to-transparent p-4 transition-all hover:border-warning/40 hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{p.nombre} {p.apellidos}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Acumulado: ${p.montoTotal.toLocaleString("es-MX")} MXN
                       </p>
-                      <span className="text-sm text-muted-foreground">
-                        {p.completados}/{p.total}
-                      </span>
                     </div>
-                    <div className="mt-3">
-                      <Progress value={p.progreso} className="h-2" />
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {p.total - p.completados} documento(s) pendiente(s)
-                    </p>
-                  </Link>
-                ))}
-                {donacionesConAlerta.map((d) => (
-                  <Link
-                    key={d.id}
-                    to="/donaciones"
-                    className="block rounded-xl border border-warning/20 bg-gradient-to-r from-warning/5 to-transparent p-4 transition-all hover:border-warning/40 hover:shadow-md"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="font-medium">{d.nombreDonante}</p>
-                      <StatusBadge status="warning">Nueva</StatusBadge>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Donación de ${d.monto.toLocaleString("es-MX")} — Documentación incompleta
-                    </p>
-                  </Link>
-                ))}
-              </>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  {/* Document icons: gray → green */}
+                  <div className="mt-3 flex items-center gap-4">
+                    <DocIcon ok={p.ineOk} label="INE" />
+                    <DocIcon ok={p.csfOk} label="RFC" />
+                    <DocIcon ok={p.domicilioOk} label="Domicilio" />
+                  </div>
+                </Link>
+              ))
             )}
           </CardContent>
         </Card>
 
-        {/* Column 3: Controlling Beneficiaries (System - Blue) */}
+        {/* CARD 3: Estructura Personas Morales (Azul) */}
         <Card className="border-primary/20 shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <div className="rounded-lg bg-primary/10 p-2">
                 <Users className="h-5 w-5 text-primary" />
               </div>
-              Beneficiarios Controladores
+              Estructura Personas Morales
             </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Donantes institucionales y umbral de Beneficiario Controlador (25%)
+            </p>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="rounded-lg border border-primary/10 bg-primary/5 p-3">
-              <p className="text-xs text-muted-foreground">
-                <span className="font-semibold text-primary">Umbral del 25%:</span> Identifica personas físicas con participación ≥25% en personas morales donantes.
-              </p>
+            {/* Registered Personas Morales */}
+            {personasMorales.map((p) => (
+              <Link
+                key={p.id}
+                to={`/personas/${p.id}`}
+                className="block rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent p-4 transition-all hover:border-primary/40 hover:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{p.nombre} {p.apellidos}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Donaciones: ${p.montoTotal.toLocaleString("es-MX")} MXN
+                    </p>
+                  </div>
+                  <span className="text-sm text-muted-foreground">{p.docsCompletos}/{p.docsTotal}</span>
+                </div>
+                <Progress value={(p.docsCompletos / p.docsTotal) * 100} className="mt-2 h-1.5" />
+              </Link>
+            ))}
+
+            {/* Beneficiary Controller Alerts */}
+            <div className="rounded-lg border border-warning/30 bg-warning/5 p-3">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-warning" />
+                <p className="text-xs font-semibold text-warning">Alertas Beneficiario Controlador (≥25%)</p>
+              </div>
             </div>
 
-            {alertasBeneficiarios.length === 0 ? (
-              <div className="rounded-lg bg-muted/50 p-4 text-center">
-                <FileCheck className="mx-auto h-8 w-8 text-complete" />
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Sin alertas de beneficiarios
-                </p>
-              </div>
-            ) : (
-              alertasBeneficiarios.map((alerta) => (
-                <div
-                  key={alerta.id}
-                  className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent p-4"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <p className="font-medium">{alerta.donante}</p>
-                      <p className="text-xs text-muted-foreground">{alerta.mensaje}</p>
-                    </div>
-                    <StatusBadge status="pending">{alerta.porcentaje}%</StatusBadge>
+            {alertasBeneficiarios.map((alerta) => (
+              <div
+                key={alerta.id}
+                className="rounded-xl border border-warning/20 bg-gradient-to-r from-warning/5 to-transparent p-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="font-medium">{alerta.donante}</p>
+                    <p className="text-xs text-muted-foreground">{alerta.mensaje}</p>
                   </div>
-                  {alerta.requiereAccion && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-                      <span className="text-xs font-medium text-warning">
-                        Requiere identificación del beneficiario final
-                      </span>
-                    </div>
-                  )}
+                  <StatusBadge status="warning">{alerta.porcentaje}%</StatusBadge>
                 </div>
-              ))
-            )}
+                {alerta.requiereAccion && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <ShieldAlert className="h-3.5 w-3.5 text-urgent" />
+                    <span className="text-xs font-medium text-urgent">
+                      Identificar beneficiario final
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
