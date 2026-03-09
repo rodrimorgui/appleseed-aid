@@ -235,6 +235,14 @@ export default function PersonaProfile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Section C: Beneficiario Controlador (solo Persona Moral) */}
+      {esMoral && (
+        <BeneficiarioControladorSection
+          personId={persona.id}
+          beneficiarios={persona.beneficiariosControladores}
+        />
+      )}
     </div>
   );
 }
