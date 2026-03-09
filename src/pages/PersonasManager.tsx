@@ -113,6 +113,9 @@ export default function PersonasManager() {
                 ).length;
                 const docsTotal = p.documentos.length;
                 const todosCompletos = docsPendientes === 0;
+                const totalDonado = p.donaciones.reduce((s, d) => s + d.monto, 0);
+                const superaAviso = totalDonado >= UMBRAL_AVISO;
+                const superaIdentificacion = totalDonado >= UMBRAL_IDENTIFICACION;
 
                 return (
                   <TableRow key={p.id} className="group">
