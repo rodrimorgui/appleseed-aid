@@ -93,6 +93,7 @@ export default function PersonasManager() {
               <TableHead>Nombre</TableHead>
               <TableHead className="hidden sm:table-cell">Tipo</TableHead>
               <TableHead className="hidden md:table-cell">RFC</TableHead>
+              <TableHead>Total Donado</TableHead>
               <TableHead>Documentación</TableHead>
               <TableHead>Cumplimiento</TableHead>
               <TableHead>Notificación</TableHead>
