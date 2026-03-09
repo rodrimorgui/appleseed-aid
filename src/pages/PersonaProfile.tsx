@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import StatusBadge from "@/components/StatusBadge";
-import { personas } from "@/data/mockData";
+import { usePersonas } from "@/context/PersonasContext";
 
 export default function PersonaProfile() {
   const { id } = useParams();
