@@ -15,7 +15,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import StatusBadge from "@/components/StatusBadge";
-import { personas, donacionesRegistradas, oscData, UMBRAL_NOTIFICACION, UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
+import { donacionesRegistradas, oscData, UMBRAL_NOTIFICACION, UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
+import { usePersonas } from "@/context/PersonasContext";
 
 export default function Dashboard() {
   // Calculate KPIs

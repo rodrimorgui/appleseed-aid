@@ -22,6 +22,7 @@ import { usePersonas } from "@/context/PersonasContext";
 import { UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
 
 export default function PersonasManager() {
+  const { personas } = usePersonas();
   const [search, setSearch] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("todos");
   const [mostrarSoloPendientes, setMostrarSoloPendientes] = useState(true);
