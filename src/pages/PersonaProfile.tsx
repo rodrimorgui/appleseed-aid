@@ -112,7 +112,10 @@ export default function PersonaProfile() {
           <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <span>{persona.tipoDonante}</span>
             <span className="font-mono">{persona.rfc}</span>
-            <span>{persona.email}</span>
+            {persona.email && <span>{persona.email}</span>}
+            <span className="font-semibold text-foreground">
+              Total donado: ${totalDonaciones.toLocaleString("es-MX")} MXN
+            </span>
           </div>
         </div>
         {persona.notificacionPendiente ? (
