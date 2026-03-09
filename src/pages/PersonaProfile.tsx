@@ -8,8 +8,13 @@ import {
   CircleCheck,
   CircleAlert,
   Clock,
+  AlertTriangle,
+  ShieldAlert,
+  Building2,
+  User,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import {
   Table,
