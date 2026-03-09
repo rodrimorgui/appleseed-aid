@@ -40,7 +40,7 @@ export default function PersonasManager() {
         p.notificacionPendiente;
       return matchSearch && matchTipo && hasPending;
     });
-  }, [search, tipoFiltro, mostrarSoloPendientes]);
+  }, [search, tipoFiltro, mostrarSoloPendientes, personas]);
 
   return (
     <div className="space-y-6">
