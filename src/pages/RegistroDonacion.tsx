@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { agregarDonacionRegistrada } from "@/data/mockData";
+import { usePersonas } from "@/context/PersonasContext";
 import { toast } from "sonner";
 
 const UMBRAL_IDENTIFICACION = 188282;
