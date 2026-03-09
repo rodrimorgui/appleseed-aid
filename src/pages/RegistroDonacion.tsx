@@ -212,6 +212,24 @@ export default function RegistroDonacion() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="rfc"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>RFC (opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ej: GALM850315ABC"
+                          className="font-mono uppercase"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
