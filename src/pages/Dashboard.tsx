@@ -230,12 +230,6 @@ export default function Dashboard() {
                 </div>
                 Notificaciones SAT
               </CardTitle>
-              {/* Countdown to day 17 */}
-              <div className="flex items-center gap-1.5 rounded-full border border-urgent/20 bg-urgent/5 px-3 py-1">
-                <Clock className="h-3.5 w-3.5 text-urgent" />
-                <span className="text-xs font-bold text-urgent">{daysUntil17}d</span>
-                <span className="text-[10px] text-urgent/70">para día 17</span>
-              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Donantes con monto &gt; ${UMBRAL_AVISO.toLocaleString("es-MX")} MXN — Requieren aviso formal
@@ -331,7 +325,7 @@ export default function Dashboard() {
               <div className="rounded-lg bg-primary/10 p-2">
                 <Users className="h-5 w-5 text-primary" />
               </div>
-              Estructura Personas Morales
+              Expediente Personas Morales
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               Donantes institucionales y umbral de Beneficiario Controlador (25%)
@@ -358,36 +352,6 @@ export default function Dashboard() {
               </Link>
             ))}
 
-            {/* Beneficiary Controller Alerts */}
-            <div className="rounded-lg border border-warning/30 bg-warning/5 p-3">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-warning" />
-                <p className="text-xs font-semibold text-warning">Alertas Beneficiario Controlador (≥25%)</p>
-              </div>
-            </div>
-
-            {alertasBeneficiarios.map((alerta) => (
-              <div
-                key={alerta.id}
-                className="rounded-xl border border-warning/20 bg-gradient-to-r from-warning/5 to-transparent p-4"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="font-medium">{alerta.donante}</p>
-                    <p className="text-xs text-muted-foreground">{alerta.mensaje}</p>
-                  </div>
-                  <StatusBadge status="warning">{alerta.porcentaje}%</StatusBadge>
-                </div>
-                {alerta.requiereAccion && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <ShieldAlert className="h-3.5 w-3.5 text-urgent" />
-                    <span className="text-xs font-medium text-urgent">
-                      Identificar beneficiario final
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
           </CardContent>
         </Card>
       </div>
