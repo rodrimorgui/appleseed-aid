@@ -95,6 +95,7 @@ export default function RegistroDonacion() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombreDonante: "",
+      rfc: "",
       monto: "",
     },
   });
