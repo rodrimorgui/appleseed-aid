@@ -102,7 +102,7 @@ export default function PersonasManager() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   No se encontraron personas con los filtros seleccionados.
                 </TableCell>
               </TableRow>
