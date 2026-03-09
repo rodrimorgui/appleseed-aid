@@ -131,6 +131,9 @@ export default function PersonasManager() {
                     <TableCell className="hidden md:table-cell font-mono text-sm text-muted-foreground">
                       {p.rfc}
                     </TableCell>
+                    <TableCell className="font-medium text-sm">
+                      ${totalDonado.toLocaleString("es-MX")}
+                    </TableCell>
                     <TableCell>
                       {todosCompletos ? (
                         <StatusBadge status="complete">
