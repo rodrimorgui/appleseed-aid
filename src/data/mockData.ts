@@ -15,6 +15,20 @@ export interface Donacion {
   notificada: boolean;
 }
 
+export interface BeneficiarioControlador {
+  id: string;
+  personId: string;
+  nombreCompleto: string;
+  curp: string;
+  nacionalidad: string;
+  fechaNacimiento: string;
+  porcentajeParticipacion: number;
+  cargoControl: string;
+  esPPE: boolean;
+  observaciones: string;
+  fechaAlta: string;
+}
+
 export interface Persona {
   id: string;
   nombre: string;
@@ -26,6 +40,7 @@ export interface Persona {
   documentos: Documento[];
   donaciones: Donacion[];
   notificacionPendiente: boolean;
+  beneficiariosControladores: BeneficiarioControlador[];
 }
 
 // Umbrales legales LFPIORPI
