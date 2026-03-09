@@ -131,6 +131,7 @@ export const personas: Persona[] = [
       { id: "don7", fecha: "2025-01-10", monto: 45000, metodoPago: "Efectivo", notificada: true },
     ],
     notificacionPendiente: false,
+    beneficiariosControladores: [],
   },
   {
     id: "5",
