@@ -28,6 +28,11 @@ export interface Persona {
   notificacionPendiente: boolean;
 }
 
+// Umbrales legales LFPIORPI
+export const UMBRAL_NOTIFICACION = 64890; // Umbral para notificar al SAT
+export const UMBRAL_IDENTIFICACION = 188000; // Umbral para identificación completa
+export const UMBRAL_AVISO = 376000; // Umbral para aviso formal al SAT
+
 export const personas: Persona[] = [
   {
     id: "1",
@@ -41,10 +46,10 @@ export const personas: Persona[] = [
       { id: "d1", tipo: "INE", nombre: "INE_MariaGarcia.pdf", fechaCarga: "2025-01-15", estado: "cargado" },
       { id: "d2", tipo: "Constancia de Situación Fiscal", nombre: "CSF_MariaGarcia.pdf", fechaCarga: "2025-01-15", estado: "cargado" },
       { id: "d3", tipo: "Comprobante de Domicilio", nombre: "", fechaCarga: "", estado: "pendiente" },
-      { id: "d4", tipo: "Acta Constitutiva", nombre: "", fechaCarga: "", estado: "pendiente" },
     ],
     donaciones: [
-      { id: "don1", fecha: "2025-02-01", monto: 85000, metodoPago: "Transferencia", notificada: false },
+      // Monto > $64,890 = requiere notificación SAT
+      { id: "don1", fecha: "2025-02-01", monto: 75000, metodoPago: "Transferencia", notificada: false },
       { id: "don2", fecha: "2025-01-15", monto: 50000, metodoPago: "Cheque", notificada: true },
     ],
     notificacionPendiente: true,
@@ -63,7 +68,8 @@ export const personas: Persona[] = [
       { id: "d7", tipo: "Comprobante de Domicilio", nombre: "Domicilio_Roberto.pdf", fechaCarga: "2025-02-01", estado: "cargado" },
     ],
     donaciones: [
-      { id: "don3", fecha: "2025-02-10", monto: 120000, metodoPago: "Transferencia", notificada: false },
+      // Monto > $188,000 = requiere identificación completa + notificación
+      { id: "don3", fecha: "2025-02-10", monto: 195000, metodoPago: "Transferencia", notificada: false },
     ],
     notificacionPendiente: true,
   },
@@ -83,9 +89,9 @@ export const personas: Persona[] = [
       { id: "d12", tipo: "Comprobante de Domicilio", nombre: "", fechaCarga: "", estado: "pendiente" },
     ],
     donaciones: [
-      { id: "don4", fecha: "2025-02-05", monto: 250000, metodoPago: "Transferencia", notificada: false },
+      // Monto > $376,000 = requiere AVISO FORMAL al SAT (máximo riesgo)
+      { id: "don4", fecha: "2025-02-05", monto: 420000, metodoPago: "Transferencia", notificada: false },
       { id: "don5", fecha: "2025-01-20", monto: 180000, metodoPago: "Transferencia", notificada: true },
-      { id: "don6", fecha: "2024-12-15", monto: 200000, metodoPago: "Cheque", notificada: true },
     ],
     notificacionPendiente: true,
   },
@@ -103,7 +109,8 @@ export const personas: Persona[] = [
       { id: "d15", tipo: "Comprobante de Domicilio", nombre: "Domicilio_Carlos.pdf", fechaCarga: "2025-01-20", estado: "cargado" },
     ],
     donaciones: [
-      { id: "don7", fecha: "2025-01-10", monto: 30000, metodoPago: "Efectivo", notificada: true },
+      // Monto < $64,890 = NO requiere notificación
+      { id: "don7", fecha: "2025-01-10", monto: 45000, metodoPago: "Efectivo", notificada: true },
     ],
     notificacionPendiente: false,
   },
@@ -121,7 +128,8 @@ export const personas: Persona[] = [
       { id: "d18", tipo: "Comprobante de Domicilio", nombre: "", fechaCarga: "", estado: "pendiente" },
     ],
     donaciones: [
-      { id: "don8", fecha: "2025-02-14", monto: 95000, metodoPago: "Transferencia", notificada: false },
+      // Monto > $188,000 = requiere identificación completa (ALTO RIESGO: sin documentos)
+      { id: "don8", fecha: "2025-02-14", monto: 210000, metodoPago: "Transferencia", notificada: false },
     ],
     notificacionPendiente: true,
   },
