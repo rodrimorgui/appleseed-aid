@@ -13,6 +13,7 @@ import {
   Building2,
   User,
 } from "lucide-react";
+import BeneficiarioControladorSection from "@/components/BeneficiarioControladorSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -234,6 +235,14 @@ export default function PersonaProfile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Section C: Beneficiario Controlador (solo Persona Moral) */}
+      {esMoral && (
+        <BeneficiarioControladorSection
+          personId={persona.id}
+          beneficiarios={persona.beneficiariosControladores}
+        />
+      )}
     </div>
   );
 }

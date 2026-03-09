@@ -15,6 +15,20 @@ export interface Donacion {
   notificada: boolean;
 }
 
+export interface BeneficiarioControlador {
+  id: string;
+  personId: string;
+  nombreCompleto: string;
+  curp: string;
+  nacionalidad: string;
+  fechaNacimiento: string;
+  porcentajeParticipacion: number;
+  cargoControl: string;
+  esPPE: boolean;
+  observaciones: string;
+  fechaAlta: string;
+}
+
 export interface Persona {
   id: string;
   nombre: string;
@@ -26,6 +40,7 @@ export interface Persona {
   documentos: Documento[];
   donaciones: Donacion[];
   notificacionPendiente: boolean;
+  beneficiariosControladores: BeneficiarioControlador[];
 }
 
 // Umbrales legales LFPIORPI
@@ -53,6 +68,7 @@ export const personas: Persona[] = [
       { id: "don2", fecha: "2025-01-15", monto: 50000, metodoPago: "Cheque", notificada: true },
     ],
     notificacionPendiente: true,
+    beneficiariosControladores: [],
   },
   {
     id: "2",
@@ -72,6 +88,7 @@ export const personas: Persona[] = [
       { id: "don3", fecha: "2025-02-10", monto: 195000, metodoPago: "Transferencia", notificada: false },
     ],
     notificacionPendiente: true,
+    beneficiariosControladores: [],
   },
   {
     id: "3",
@@ -94,6 +111,7 @@ export const personas: Persona[] = [
       { id: "don5", fecha: "2025-01-20", monto: 180000, metodoPago: "Transferencia", notificada: true },
     ],
     notificacionPendiente: true,
+    beneficiariosControladores: [],
   },
   {
     id: "4",
@@ -113,6 +131,7 @@ export const personas: Persona[] = [
       { id: "don7", fecha: "2025-01-10", monto: 45000, metodoPago: "Efectivo", notificada: true },
     ],
     notificacionPendiente: false,
+    beneficiariosControladores: [],
   },
   {
     id: "5",
@@ -132,6 +151,7 @@ export const personas: Persona[] = [
       { id: "don8", fecha: "2025-02-14", monto: 210000, metodoPago: "Transferencia", notificada: false },
     ],
     notificacionPendiente: true,
+    beneficiariosControladores: [],
   },
 ];
 

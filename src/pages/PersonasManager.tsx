@@ -135,15 +135,22 @@ export default function PersonasManager() {
                       ${totalDonado.toLocaleString("es-MX")}
                     </TableCell>
                     <TableCell>
-                      {todosCompletos ? (
-                        <StatusBadge status="complete">
-                          {docsTotal}/{docsTotal} completos
-                        </StatusBadge>
-                      ) : (
-                        <StatusBadge status="urgent">
-                          {docsPendientes} pendientes
-                        </StatusBadge>
-                      )}
+                      {(() => {
+                        const isMoral = p.tipoDonante === "Persona Moral";
+                        const faltaBC = isMoral && p.beneficiariosControladores.length === 0;
+                        if (faltaBC) {
+                          return <StatusBadge status="urgent">Falta B.C.</StatusBadge>;
+                        }
+                        return todosCompletos ? (
+                          <StatusBadge status="complete">
+                            {docsTotal}/{docsTotal} completos
+                          </StatusBadge>
+                        ) : (
+                          <StatusBadge status="urgent">
+                            {docsPendientes} pendientes
+                          </StatusBadge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       {superaAviso ? (
