@@ -120,6 +120,7 @@ export default function RegistroDonacion() {
       tipoPersona: data.tipoPersona,
       monto,
       fecha: format(data.fechaDonacion, "yyyy-MM-dd"),
+      rfc: data.rfc || undefined,
     });
 
     // Also keep legacy store in sync
