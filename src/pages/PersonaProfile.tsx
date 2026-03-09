@@ -8,8 +8,13 @@ import {
   CircleCheck,
   CircleAlert,
   Clock,
+  AlertTriangle,
+  ShieldAlert,
+  Building2,
+  User,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -41,8 +46,57 @@ export default function PersonaProfile() {
 
   const docsPendientes = persona.documentos.filter((d) => d.estado === "pendiente").length;
 
+  // Calcular diagnóstico legal
+  const totalDonaciones = persona.donaciones.reduce((sum, d) => sum + d.monto, 0);
+  const maxDonacion = Math.max(...persona.donaciones.map((d) => d.monto));
+  const montoReferencia = Math.max(totalDonaciones, maxDonacion);
+  const esMoral = persona.tipoDonante === "Persona Moral";
+  const superaAviso = montoReferencia >= UMBRAL_AVISO;
+  const superaIdentificacion = montoReferencia >= UMBRAL_IDENTIFICACION;
+
+  const getBannerConfig = () => {
+    if (superaAviso) {
+      return {
+        icon: ShieldAlert,
+        label: `${persona.tipoDonante} — Umbral de Aviso SAT superado`,
+        sublabel: esMoral
+          ? "Requiere identificación de Beneficiario Controlador (25%+) y aviso formal al SAT"
+          : "Acumulado semestral supera $376,000 MXN — Notificación SAT obligatoria",
+        className: "border-destructive/40 bg-destructive/5 text-destructive",
+      };
+    }
+    if (superaIdentificacion) {
+      return {
+        icon: AlertTriangle,
+        label: `${persona.tipoDonante} — Umbral de identificación superado`,
+        sublabel: esMoral
+          ? "Requiere identificación de Beneficiario Controlador (25%+) y expediente completo"
+          : "Acumulado semestral supera $188,282 MXN — Expediente completo obligatorio",
+        className: "border-warning/40 bg-warning/5 text-warning",
+      };
+    }
+    return null;
+  };
+
+  const banner = getBannerConfig();
+
   return (
     <div className="space-y-6">
+      {/* Banner de Diagnóstico Legal */}
+      {banner && (
+        <div className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${banner.className}`}>
+          <banner.icon className="h-5 w-5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">{banner.label}</p>
+            <p className="text-xs opacity-80">{banner.sublabel}</p>
+          </div>
+          {esMoral ? (
+            <Building2 className="h-4 w-4 shrink-0 ml-auto opacity-60" />
+          ) : (
+            <User className="h-4 w-4 shrink-0 ml-auto opacity-60" />
+          )}
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link to="/personas">
