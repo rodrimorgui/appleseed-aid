@@ -127,6 +127,25 @@ export const personas: Persona[] = [
   },
 ];
 
+export interface DonacionRegistrada {
+  id: string;
+  nombreDonante: string;
+  tipoPersona: "fisica" | "moral";
+  monto: number;
+  fecha: string;
+  documentosCompletos: boolean;
+  alertaCumplimiento: boolean;
+  consentimientoAceptado: boolean;
+  fechaRegistro: string;
+}
+
+// Store de donaciones registradas desde el formulario
+export const donacionesRegistradas: DonacionRegistrada[] = [];
+
+export function agregarDonacionRegistrada(donacion: DonacionRegistrada) {
+  donacionesRegistradas.unshift(donacion);
+}
+
 export interface OSCData {
   nombre: string;
   rfc: string;
