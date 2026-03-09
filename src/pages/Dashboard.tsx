@@ -230,12 +230,6 @@ export default function Dashboard() {
                 </div>
                 Notificaciones SAT
               </CardTitle>
-              {/* Countdown to day 17 */}
-              <div className="flex items-center gap-1.5 rounded-full border border-urgent/20 bg-urgent/5 px-3 py-1">
-                <Clock className="h-3.5 w-3.5 text-urgent" />
-                <span className="text-xs font-bold text-urgent">{daysUntil17}d</span>
-                <span className="text-[10px] text-urgent/70">para día 17</span>
-              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Donantes con monto &gt; ${UMBRAL_AVISO.toLocaleString("es-MX")} MXN — Requieren aviso formal
