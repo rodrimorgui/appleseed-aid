@@ -34,27 +34,36 @@ export default function Dashboard() {
   ).length;
   const porcentajeCumplimiento = Math.round((donantesCompletos / totalDonantes) * 100);
 
-  // Notifications pending SAT
+  // SAT Notifications: Only donors with donations > $376,000 (UMBRAL_AVISO) - Formal SAT notice required
   const notificacionesSAT = personas
-    .filter((p) => p.notificacionPendiente)
     .map((p) => {
       const donacionesPendientes = p.donaciones.filter((d) => !d.notificada);
       const montoTotal = donacionesPendientes.reduce((s, d) => s + d.monto, 0);
+      const maxDonacion = Math.max(...donacionesPendientes.map(d => d.monto), 0);
       const ultimaDonacion = donacionesPendientes[0];
       const fechaLimite = ultimaDonacion
         ? new Date(new Date(ultimaDonacion.fecha).setDate(new Date(ultimaDonacion.fecha).getDate() + 30))
         : null;
-      return { ...p, montoTotal, fechaLimite };
-    });
+      return { ...p, montoTotal, maxDonacion, fechaLimite };
+    })
+    .filter((p) => p.montoTotal > UMBRAL_AVISO || p.maxDonacion > UMBRAL_AVISO);
 
-  // Pending documentation with progress
+  // Pending documentation: Donors with donations > $188,000 (UMBRAL_IDENTIFICACION) and missing documents
   const documentacionPendiente = personas
-    .filter((p) => p.documentos.some((d) => d.estado === "pendiente"))
+    .filter((p) => {
+      const tieneDocsPendientes = p.documentos.some((d) => d.estado === "pendiente");
+      const donacionesPendientes = p.donaciones.filter((d) => !d.notificada);
+      const montoTotal = donacionesPendientes.reduce((s, d) => s + d.monto, 0);
+      const maxDonacion = Math.max(...p.donaciones.map(d => d.monto), 0);
+      const requiereIdentificacion = montoTotal > UMBRAL_IDENTIFICACION || maxDonacion > UMBRAL_IDENTIFICACION;
+      return tieneDocsPendientes && requiereIdentificacion;
+    })
     .map((p) => {
       const total = p.documentos.length;
       const completados = p.documentos.filter((d) => d.estado === "cargado").length;
       const progreso = Math.round((completados / total) * 100);
-      return { ...p, total, completados, progreso };
+      const montoTotal = p.donaciones.reduce((s, d) => s + d.monto, 0);
+      return { ...p, total, completados, progreso, montoTotal };
     });
 
   // Donations from registry with alerts
