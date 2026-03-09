@@ -127,7 +127,46 @@ export const personas: Persona[] = [
   },
 ];
 
+export interface DonacionRegistrada {
+  id: string;
+  nombreDonante: string;
+  tipoPersona: "fisica" | "moral";
+  monto: number;
+  fecha: string;
+  documentosCompletos: boolean;
+  alertaCumplimiento: boolean;
+  consentimientoAceptado: boolean;
+  fechaRegistro: string;
+}
+
+// Store de donaciones registradas desde el formulario
+export const donacionesRegistradas: DonacionRegistrada[] = [];
+
+export function agregarDonacionRegistrada(donacion: DonacionRegistrada) {
+  donacionesRegistradas.unshift(donacion);
+}
+
 export interface OSCData {
+  nombre: string;
+  rfc: string;
+  cluni: string;
+  domicilio: string;
+  representanteLegal: string;
+  email: string;
+  telefono: string;
+  umbralAlerta: number;
+}
+
+export const oscData: OSCData = {
+  nombre: "Appleseed México A.C.",
+  rfc: "APM150301XYZ",
+  cluni: "APM-2015-001234",
+  domicilio: "Av. Reforma 505, Col. Cuauhtémoc, CDMX, CP 06500",
+  representanteLegal: "Lic. Alejandro Ruiz Mendoza",
+  email: "contacto@appleseedmexico.org",
+  telefono: "55 1111 2222",
+  umbralAlerta: 64890,
+};
   nombre: string;
   rfc: string;
   cluni: string;

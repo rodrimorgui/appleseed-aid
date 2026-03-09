@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 import {
   CalendarIcon,
   Upload,
@@ -15,12 +16,12 @@ import {
   Scale,
   Shield,
   Users,
+  ShieldAlert,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
@@ -51,6 +52,18 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { agregarDonacionRegistrada } from "@/data/mockData";
+import { toast } from "sonner";
 
 // Umbrales de la Ley Antilavado (valores en MXN)
 const UMBRAL_IDENTIFICACION = 188000;
@@ -85,9 +98,13 @@ const documentTypes = [
 ] as const;
 
 export default function RegistroDonacion() {
+  const navigate = useNavigate();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [montoNumerico, setMontoNumerico] = useState<number>(0);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [consentimientoAceptado, setConsentimientoAceptado] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<FormValues | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -98,24 +115,22 @@ export default function RegistroDonacion() {
   });
 
   const handleMontoChange = (value: string) => {
-    // Limpiar caracteres no numéricos excepto punto y coma
     const cleanValue = value.replace(/[^0-9.,]/g, "");
     const numericValue = parseFloat(cleanValue.replace(/,/g, "")) || 0;
     setMontoNumerico(numericValue);
     return cleanValue;
   };
 
-  const formatMonto = (value: number): string => {
-    return new Intl.NumberFormat("es-MX", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
+  const allDocsUploaded = documentTypes.every((doc) =>
+    uploadedFiles.some((f) => f.type === doc.id)
+  );
+
+  const hasComplianceAlert =
+    montoNumerico > UMBRAL_IDENTIFICACION && !allDocsUploaded;
 
   const handleDrop = useCallback((e: React.DragEvent, docType: string) => {
     e.preventDefault();
     setDragOver(null);
-    
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       const newFile: UploadedFile = {
@@ -143,10 +158,48 @@ export default function RegistroDonacion() {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== fileId));
   };
 
+  const saveDonation = (data: FormValues, withConsent: boolean) => {
+    const monto = parseFloat(data.monto.replace(/,/g, ""));
+    agregarDonacionRegistrada({
+      id: `dr-${Date.now()}`,
+      nombreDonante: data.nombreDonante,
+      tipoPersona: data.tipoPersona,
+      monto,
+      fecha: format(data.fechaDonacion, "yyyy-MM-dd"),
+      documentosCompletos: allDocsUploaded,
+      alertaCumplimiento: hasComplianceAlert,
+      consentimientoAceptado: withConsent,
+      fechaRegistro: new Date().toISOString(),
+    });
+
+    toast.success("Donación registrada correctamente", {
+      description: hasComplianceAlert
+        ? "⚠️ Marcada con Alerta de Cumplimiento — Documentación Pendiente"
+        : "Todos los requisitos de cumplimiento están en orden.",
+    });
+
+    form.reset();
+    setUploadedFiles([]);
+    setMontoNumerico(0);
+    navigate("/");
+  };
+
   const onSubmit = (data: FormValues) => {
-    console.log("Datos del formulario:", data);
-    console.log("Archivos subidos:", uploadedFiles);
-    // Aquí iría la lógica de envío
+    if (hasComplianceAlert) {
+      setPendingFormData(data);
+      setConsentimientoAceptado(false);
+      setShowLegalModal(true);
+    } else {
+      saveDonation(data, false);
+    }
+  };
+
+  const handleConfirmWithConsent = () => {
+    if (pendingFormData) {
+      saveDonation(pendingFormData, true);
+      setShowLegalModal(false);
+      setPendingFormData(null);
+    }
   };
 
   const getAlertLevel = (): "none" | "warning" | "danger" => {
@@ -177,8 +230,13 @@ export default function RegistroDonacion() {
                 ⚠️ Umbral de Identificación Superado
               </AlertTitle>
               <AlertDescription className="text-warning/90">
-                Esta donación supera el Umbral de Identificación ($188,000 MXN). 
+                Esta donación supera el Umbral de Identificación ($188,000 MXN).
                 Es <strong>OBLIGATORIO</strong> integrar el expediente completo del donante.
+                {!allDocsUploaded && (
+                  <span className="block mt-1 font-semibold">
+                    Documentación incompleta — se marcará como Alerta de Cumplimiento.
+                  </span>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -190,8 +248,13 @@ export default function RegistroDonacion() {
                 🚨 Umbral de Aviso al SAT Superado
               </AlertTitle>
               <AlertDescription className="text-destructive/90">
-                Esta donación supera el Umbral de Aviso ($376,000 MXN). 
+                Esta donación supera el Umbral de Aviso ($376,000 MXN).
                 Se generará <strong>automáticamente</strong> una notificación pendiente para el SAT.
+                {!allDocsUploaded && (
+                  <span className="block mt-1 font-semibold">
+                    Documentación incompleta — se marcará como Alerta de Cumplimiento.
+                  </span>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -213,7 +276,6 @@ export default function RegistroDonacion() {
                   {/* Datos del Donante */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-foreground">Datos del Donante</h3>
-                    
                     <div className="grid gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}
@@ -222,16 +284,15 @@ export default function RegistroDonacion() {
                           <FormItem className="sm:col-span-2">
                             <FormLabel>Nombre Completo o Razón Social</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="Ej: Juan Pérez García o Fundación Ejemplo S.A. de C.V." 
-                                {...field} 
+                              <Input
+                                placeholder="Ej: Juan Pérez García o Fundación Ejemplo S.A. de C.V."
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="tipoPersona"
@@ -261,7 +322,6 @@ export default function RegistroDonacion() {
                   {/* Datos del Donativo */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-foreground">Datos del Donativo</h3>
-                    
                     <div className="grid gap-4 sm:grid-cols-2">
                       <FormField
                         control={form.control}
@@ -271,9 +331,7 @@ export default function RegistroDonacion() {
                             <FormLabel>Monto (MXN)</FormLabel>
                             <FormControl>
                               <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                  $
-                                </span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                                 <Input
                                   placeholder="0.00"
                                   className="pl-7"
@@ -289,7 +347,6 @@ export default function RegistroDonacion() {
                           </FormItem>
                         )}
                       />
-
                       <FormField
                         control={form.control}
                         name="fechaDonacion"
@@ -339,18 +396,16 @@ export default function RegistroDonacion() {
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-foreground">
                       Documentación de Debida Diligencia
-                      {alertLevel !== "none" && (
+                      {alertLevel !== "none" && !allDocsUploaded && (
                         <span className="ml-2 text-xs font-normal text-destructive">
-                          (Obligatorio para este monto)
+                          (Obligatorio para este monto — faltantes generarán alerta)
                         </span>
                       )}
                     </h3>
-                    
                     <div className="grid gap-4 sm:grid-cols-3">
                       {documentTypes.map((doc) => {
                         const uploadedFile = uploadedFiles.find((f) => f.type === doc.id);
                         const isDragOver = dragOver === doc.id;
-                        
                         return (
                           <div
                             key={doc.id}
@@ -359,13 +414,10 @@ export default function RegistroDonacion() {
                               isDragOver
                                 ? "border-primary bg-primary/5"
                                 : uploadedFile
-                                ? "border-success/50 bg-success/5"
+                                ? "border-complete/50 bg-complete/5"
                                 : "border-border hover:border-muted-foreground/50"
                             )}
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              setDragOver(doc.id);
-                            }}
+                            onDragOver={(e) => { e.preventDefault(); setDragOver(doc.id); }}
                             onDragLeave={() => setDragOver(null)}
                             onDrop={(e) => handleDrop(e, doc.id)}
                           >
@@ -376,41 +428,25 @@ export default function RegistroDonacion() {
                               accept=".pdf,.jpg,.jpeg,.png"
                               onChange={(e) => handleFileInput(e, doc.id)}
                             />
-                            
                             {uploadedFile ? (
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <FileText className="h-5 w-5 text-success" />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeFile(uploadedFile.id)}
-                                    className="rounded p-1 hover:bg-muted"
-                                  >
+                                  <FileText className="h-5 w-5 text-complete" />
+                                  <button type="button" onClick={() => removeFile(uploadedFile.id)} className="rounded p-1 hover:bg-muted">
                                     <X className="h-4 w-4 text-muted-foreground" />
                                   </button>
                                 </div>
-                                <p className="text-xs font-medium text-foreground truncate">
-                                  {uploadedFile.name}
-                                </p>
-                                <p className="text-xs text-success">Archivo cargado</p>
+                                <p className="text-xs font-medium text-foreground truncate">{uploadedFile.name}</p>
+                                <p className="text-xs text-complete">Archivo cargado</p>
                               </div>
                             ) : (
-                              <label
-                                htmlFor={`file-${doc.id}`}
-                                className="flex cursor-pointer flex-col items-center gap-2 text-center"
-                              >
+                              <label htmlFor={`file-${doc.id}`} className="flex cursor-pointer flex-col items-center gap-2 text-center">
                                 <Upload className="h-6 w-6 text-muted-foreground" />
                                 <div>
-                                  <p className="text-xs font-medium text-foreground">
-                                    {doc.label}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {doc.description}
-                                  </p>
+                                  <p className="text-xs font-medium text-foreground">{doc.label}</p>
+                                  <p className="text-xs text-muted-foreground">{doc.description}</p>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Arrastra o haz clic
-                                </p>
+                                <p className="text-xs text-muted-foreground">Arrastra o haz clic</p>
                               </label>
                             )}
                           </div>
@@ -420,11 +456,11 @@ export default function RegistroDonacion() {
                   </div>
 
                   <div className="flex justify-end gap-3 pt-4">
-                    <Button type="button" variant="outline">
+                    <Button type="button" variant="outline" onClick={() => navigate("/")}>
                       Cancelar
                     </Button>
                     <Button type="submit">
-                      Registrar Donación
+                      {hasComplianceAlert ? "Guardar con Alerta" : "Registrar Donación"}
                     </Button>
                   </div>
                 </form>
@@ -449,28 +485,19 @@ export default function RegistroDonacion() {
                     <div className="h-2 w-2 rounded-full bg-warning" />
                     Umbral de Identificación
                   </div>
-                  <p className="mt-1 text-lg font-bold text-foreground">
-                    1,605 UMA
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    ≈ $188,000 MXN
-                  </p>
+                  <p className="mt-1 text-lg font-bold text-foreground">1,605 UMA</p>
+                  <p className="text-sm text-muted-foreground">≈ $188,000 MXN</p>
                   <p className="mt-2 text-xs text-muted-foreground">
                     A partir de este monto, es obligatorio integrar el expediente completo del donante.
                   </p>
                 </div>
-
                 <div className="rounded-lg bg-card p-3 shadow-sm">
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <div className="h-2 w-2 rounded-full bg-destructive" />
                     Umbral de Aviso
                   </div>
-                  <p className="mt-1 text-lg font-bold text-foreground">
-                    3,210 UMA
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    ≈ $376,000 MXN
-                  </p>
+                  <p className="mt-1 text-lg font-bold text-foreground">3,210 UMA</p>
+                  <p className="text-sm text-muted-foreground">≈ $376,000 MXN</p>
                   <p className="mt-2 text-xs text-muted-foreground">
                     Donaciones que superen este umbral deben notificarse al SAT.
                   </p>
@@ -490,13 +517,13 @@ export default function RegistroDonacion() {
               <Alert className="border-muted bg-muted/30">
                 <Info className="h-4 w-4" />
                 <AlertDescription className="text-xs">
-                  <strong>Umbral del 25%:</strong> Si una persona física posee o controla 
-                  directa o indirectamente el 25% o más de los derechos de una persona moral, 
+                  <strong>Umbral del 25%:</strong> Si una persona física posee o controla
+                  directa o indirectamente el 25% o más de los derechos de una persona moral,
                   debe identificarse como Beneficiario Controlador.
                 </AlertDescription>
               </Alert>
               <p className="mt-3 text-xs text-muted-foreground">
-                En caso de personas morales donantes, solicite información sobre su 
+                En caso de personas morales donantes, solicite información sobre su
                 estructura accionaria para identificar posibles beneficiarios controladores.
               </p>
             </CardContent>
@@ -528,6 +555,59 @@ export default function RegistroDonacion() {
           </Card>
         </div>
       </div>
+
+      {/* Modal de Consentimiento Legal */}
+      <AlertDialog open={showLegalModal} onOpenChange={setShowLegalModal}>
+        <AlertDialogContent className="max-w-lg border-destructive/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-3 text-destructive text-xl">
+              <ShieldAlert className="h-7 w-7" />
+              Advertencia Legal — LFPIORPI
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 pt-2">
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+                  <p className="text-sm font-semibold text-destructive">
+                    ⚠️ Está registrando una donación con documentación incompleta que supera los umbrales de la Ley Antilavado.
+                  </p>
+                  <p className="text-sm text-foreground">
+                    El incumplimiento en la integración de expedientes o la omisión de avisos puede derivar en multas que oscilan entre{" "}
+                    <strong className="text-destructive">200 y 65,000 UMAS</strong>{" "}
+                    (hasta <strong className="text-destructive">$7.6 millones de MXN</strong>).
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Fundamento: Artículos 52, 53, 54 y 55 de la Ley Federal para la Prevención e Identificación de Operaciones con Recursos de Procedencia Ilícita (LFPIORPI).
+                  </p>
+                </div>
+
+                <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/50 p-4">
+                  <Checkbox
+                    id="consentimiento-legal"
+                    checked={consentimientoAceptado}
+                    onCheckedChange={(checked) => setConsentimientoAceptado(checked === true)}
+                    className="mt-0.5"
+                  />
+                  <label htmlFor="consentimiento-legal" className="text-sm text-foreground cursor-pointer leading-relaxed">
+                    Entiendo los riesgos legales y las posibles sanciones por registrar esta donación con documentación incompleta.
+                  </label>
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-2">
+            <AlertDialogCancel onClick={() => { setShowLegalModal(false); setConsentimientoAceptado(false); }}>
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={!consentimientoAceptado}
+              onClick={handleConfirmWithConsent}
+            >
+              Confirmar Registro
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

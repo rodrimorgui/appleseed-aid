@@ -5,10 +5,11 @@ import {
   DollarSign,
   ArrowRight,
   Bell,
+  ShieldAlert,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StatusBadge from "@/components/StatusBadge";
-import { personas } from "@/data/mockData";
+import { personas, donacionesRegistradas } from "@/data/mockData";
 
 export default function Dashboard() {
   const notificacionesPendientes = personas.filter((p) => p.notificacionPendiente).length;
@@ -21,6 +22,7 @@ export default function Dashboard() {
     .reduce((sum, d) => sum + d.monto, 0);
 
   const personasUrgentes = personas.filter((p) => p.notificacionPendiente);
+  const donacionesConAlerta = donacionesRegistradas.filter((d) => d.alertaCumplimiento);
 
   return (
     <div className="space-y-8">
@@ -54,7 +56,7 @@ export default function Dashboard() {
             <FileWarning className="h-5 w-5 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold">{expedientesIncompletos}</div>
+            <div className="text-4xl font-bold">{expedientesIncompletos + donacionesConAlerta.length}</div>
             <p className="mt-1 text-xs text-muted-foreground">Documentos faltantes</p>
           </CardContent>
         </Card>
@@ -74,6 +76,45 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Donaciones con Documentación Pendiente */}
+      {donacionesConAlerta.length > 0 && (
+        <Card className="border-warning/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-warning" />
+              Donaciones con Documentación Pendiente
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {donacionesConAlerta.map((d) => (
+                <Link
+                  key={d.id}
+                  to="/donaciones"
+                  className="flex items-center justify-between rounded-lg border border-warning/20 bg-warning/5 p-4 transition-colors hover:bg-warning/10"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium">{d.nombreDonante}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <StatusBadge status="warning">
+                        Documentación Pendiente
+                      </StatusBadge>
+                      <StatusBadge status={d.monto > 376000 ? "urgent" : "pending"}>
+                        ${d.monto.toLocaleString("es-MX")} MXN
+                      </StatusBadge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Registrada el {new Date(d.fechaRegistro).toLocaleDateString("es-MX")} — Consentimiento aceptado
+                    </p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Urgent Actions */}
       <Card>
