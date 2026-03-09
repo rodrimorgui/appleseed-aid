@@ -19,6 +19,7 @@ import { donacionesRegistradas, oscData, UMBRAL_NOTIFICACION, UMBRAL_IDENTIFICAC
 import { usePersonas } from "@/context/PersonasContext";
 
 export default function Dashboard() {
+  const { personas } = usePersonas();
   // Calculate KPIs
   const today = new Date();
   const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
