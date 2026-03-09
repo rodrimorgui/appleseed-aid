@@ -133,68 +133,6 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* KPI Row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Días para Cierre de Avisos</p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-primary">{daysUntilDeadline}</span>
-                  <span className="text-sm text-muted-foreground">días</span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Fecha límite: {endOfMonth.toLocaleDateString("es-MX", { month: "long", day: "numeric" })}
-                </p>
-              </div>
-              <div className="rounded-xl bg-primary/10 p-3">
-                <Calendar className="h-6 w-6 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-urgent/30 bg-gradient-to-br from-urgent/5 to-urgent/10 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Monto en Riesgo Legal</p>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-urgent">
-                    ${montoEnRiesgo.toLocaleString("es-MX")}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-urgent/80">
-                  Donaciones sin notificar al SAT
-                </p>
-              </div>
-              <div className="rounded-xl bg-urgent/10 p-3">
-                <ShieldAlert className="h-6 w-6 text-urgent" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden border-complete/30 bg-gradient-to-br from-complete/5 to-complete/10 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Cumplimiento Total</p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-complete">{porcentajeCumplimiento}%</span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {donantesCompletos} de {totalDonantes} donantes al corriente
-                </p>
-              </div>
-              <div className="rounded-xl bg-complete/10 p-3">
-                <TrendingUp className="h-6 w-6 text-complete" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Artu.ai Shortcut */}
       <Card className="border-primary/20 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 shadow-sm">
