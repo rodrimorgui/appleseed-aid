@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { Persona, Donacion, Documento, personas as mockPersonas, UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
+import { Persona, Donacion, Documento, BeneficiarioControlador, personas as mockPersonas, UMBRAL_IDENTIFICACION, UMBRAL_AVISO } from "@/data/mockData";
 
 interface PersonasContextType {
   personas: Persona[];
@@ -12,6 +12,8 @@ interface PersonasContextType {
     rfc?: string;
   }) => Persona;
   getPersona: (id: string) => Persona | undefined;
+  addBeneficiario: (personId: string, data: Omit<BeneficiarioControlador, "id" | "personId" | "fechaAlta">) => void;
+  updateBeneficiario: (personId: string, beneficiarioId: string, data: Partial<Omit<BeneficiarioControlador, "id" | "personId">>) => void;
 }
 
 const PersonasContext = createContext<PersonasContextType | null>(null);
@@ -44,7 +46,6 @@ function findExistingPersona(personas: Persona[], nombre: string, rfc?: string):
     const byRfc = personas.find((p) => p.rfc.toLowerCase() === rfc.toLowerCase());
     if (byRfc) return byRfc;
   }
-  // Match by full name (nombre + apellidos combined)
   const normalizedName = nombre.trim().toLowerCase();
   return personas.find(
     (p) => `${p.nombre} ${p.apellidos}`.trim().toLowerCase() === normalizedName
@@ -82,7 +83,6 @@ export function PersonasProvider({ children }: { children: ReactNode }) {
         const existing = findExistingPersona(prev, params.nombreDonante, params.rfc);
 
         if (existing) {
-          // Update existing persona
           const updated = prev.map((p) => {
             if (p.id !== existing.id) return p;
             const updatedDonaciones = [newDonacion, ...p.donaciones];
@@ -98,7 +98,6 @@ export function PersonasProvider({ children }: { children: ReactNode }) {
           resultPersona = updated.find((p) => p.id === existing.id)!;
           return updated;
         } else {
-          // Create new persona
           const nameParts = params.nombreDonante.trim().split(" ");
           const nombre = nameParts.slice(0, Math.ceil(nameParts.length / 2)).join(" ");
           const apellidos = nameParts.slice(Math.ceil(nameParts.length / 2)).join(" ") || "";
@@ -118,6 +117,7 @@ export function PersonasProvider({ children }: { children: ReactNode }) {
             documentos: buildDefaultDocs(params.tipoPersona),
             donaciones: [newDonacion],
             notificacionPendiente: needsNotification,
+            beneficiariosControladores: [],
           };
 
           resultPersona = newPersona;
@@ -130,8 +130,43 @@ export function PersonasProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const addBeneficiario = useCallback(
+    (personId: string, data: Omit<BeneficiarioControlador, "id" | "personId" | "fechaAlta">) => {
+      setPersonasList((prev) =>
+        prev.map((p) => {
+          if (p.id !== personId || p.tipoDonante !== "Persona Moral") return p;
+          const nuevo: BeneficiarioControlador = {
+            ...data,
+            id: `bc-${Date.now()}`,
+            personId,
+            fechaAlta: new Date().toISOString().split("T")[0],
+          };
+          return { ...p, beneficiariosControladores: [...p.beneficiariosControladores, nuevo] };
+        })
+      );
+    },
+    []
+  );
+
+  const updateBeneficiario = useCallback(
+    (personId: string, beneficiarioId: string, data: Partial<Omit<BeneficiarioControlador, "id" | "personId">>) => {
+      setPersonasList((prev) =>
+        prev.map((p) => {
+          if (p.id !== personId) return p;
+          return {
+            ...p,
+            beneficiariosControladores: p.beneficiariosControladores.map((bc) =>
+              bc.id === beneficiarioId ? { ...bc, ...data } : bc
+            ),
+          };
+        })
+      );
+    },
+    []
+  );
+
   return (
-    <PersonasContext.Provider value={{ personas: personasList, addDonacion, getPersona }}>
+    <PersonasContext.Provider value={{ personas: personasList, addDonacion, getPersona, addBeneficiario, updateBeneficiario }}>
       {children}
     </PersonasContext.Provider>
   );
